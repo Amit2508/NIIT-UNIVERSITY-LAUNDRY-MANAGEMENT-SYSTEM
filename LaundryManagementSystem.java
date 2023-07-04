@@ -5,8 +5,9 @@ import java.awt.event.ActionListener;
 import java.sql.*;
 
 public class LaundryManagementSystem extends JFrame implements ActionListener {
-    private JTextField customerNameField;
-    private JTextField phoneNumberField;
+    private JTextField nameField;
+    private JTextField bagNumberField;
+    private JTextField clothesCountField;
     private JButton submitButton;
 
     private Connection connection;
@@ -15,23 +16,28 @@ public class LaundryManagementSystem extends JFrame implements ActionListener {
     public LaundryManagementSystem() {
         setTitle("Laundry Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 200);
+        setSize(400, 250);
         setLocationRelativeTo(null);
         setLayout(new FlowLayout());
 
-        JLabel customerNameLabel = new JLabel("Customer Name:");
-        customerNameField = new JTextField(20);
+        JLabel nameLabel = new JLabel("Name:");
+        nameField = new JTextField(20);
 
-        JLabel phoneNumberLabel = new JLabel("Phone Number:");
-        phoneNumberField = new JTextField(20);
+        JLabel bagNumberLabel = new JLabel("Bag Number:");
+        bagNumberField = new JTextField(20);
+
+        JLabel clothesCountLabel = new JLabel("No. of Clothes:");
+        clothesCountField = new JTextField(20);
 
         submitButton = new JButton("Submit");
         submitButton.addActionListener(this);
 
-        add(customerNameLabel);
-        add(customerNameField);
-        add(phoneNumberLabel);
-        add(phoneNumberField);
+        add(nameLabel);
+        add(nameField);
+        add(bagNumberLabel);
+        add(bagNumberField);
+        add(clothesCountLabel);
+        add(clothesCountField);
         add(submitButton);
 
         setVisible(true);
@@ -43,7 +49,7 @@ public class LaundryManagementSystem extends JFrame implements ActionListener {
             String DB_USERNAME = "root";
             String DB_PASSWORD = "Amit@2508";
             connection = DriverManager.getConnection(DB_URL, DB_USERNAME, DB_PASSWORD);
-            preparedStatement = connection.prepareStatement("INSERT INTO customers (name, phone) VALUES (?, ?)");
+            preparedStatement = connection.prepareStatement("INSERT INTO customers (name, bag_number, clothes_count) VALUES (?, ?, ?)");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -52,26 +58,72 @@ public class LaundryManagementSystem extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == submitButton) {
-            String customerName = customerNameField.getText();
-            String phoneNumber = phoneNumberField.getText();
+            String name = nameField.getText();
+            String bagNumber = bagNumberField.getText();
+            String clothesCount = clothesCountField.getText();
 
-            addDataToDatabase(customerName, phoneNumber);
+            addDataToDatabase(name, bagNumber, clothesCount);
 
-            customerNameField.setText("");
-            phoneNumberField.setText("");
+            nameField.setText("");
+            bagNumberField.setText("");
+            clothesCountField.setText("");
         }
     }
 
-    private void addDataToDatabase(String name, String phone) {
+    private void addDataToDatabase(String name, String bagNumber, String clothesCount) {
         try {
+            // Check if the student has already submitted a laundry bag this week
+            if (hasSubmittedLaundryThisWeek(name)) {
+                JOptionPane.showMessageDialog(this, "You have already submitted a laundry bag this week.");
+                return;
+            }
+
+            // Check if the student has reached the maximum number of laundry bag submissions for the month
+            if (hasReachedMaximumSubmissions(name)) {
+                JOptionPane.showMessageDialog(this, "You have reached the maximum number of laundry bag submissions for this month.");
+                return;
+            }
+
+            // Check if the number of clothes exceeds the limit
+            int count = Integer.parseInt(clothesCount);
+            if (count > 15) {
+                JOptionPane.showMessageDialog(this, "Number of clothes should not exceed 15.");
+                return;
+            }
+
             preparedStatement.setString(1, name);
-            preparedStatement.setString(2, phone);
+            preparedStatement.setString(2, bagNumber);
+            preparedStatement.setString(3, clothesCount);
             preparedStatement.executeUpdate();
-            JOptionPane.showMessageDialog(this, "Data added to database successfully");
+            JOptionPane.showMessageDialog(this, "Data added to the database successfully");
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Failed to add data to database");
+            JOptionPane.showMessageDialog(this, "Failed to add data to the database");
         }
+    }
+
+    private boolean hasSubmittedLaundryThisWeek(String name) throws SQLException {
+        String query = "SELECT COUNT(*) FROM customers WHERE name = ? AND YEARWEEK(date_column) = YEARWEEK(NOW())";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setString(1, name);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            int count = rs.getInt(1);
+            return count > 0;
+        }
+        return false;
+    }
+
+    private boolean hasReachedMaximumSubmissions(String name) throws SQLException {
+        String query = "SELECT COUNT(*) FROM customers WHERE name = ? AND MONTH(date_column) = MONTH(NOW())";
+        PreparedStatement stmt = connection.prepareStatement(query);
+        stmt.setString(1, name);
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            int count = rs.getInt(1);
+            return count >= 4;
+        }
+        return false;
     }
 
     public static void main(String[] args) {
