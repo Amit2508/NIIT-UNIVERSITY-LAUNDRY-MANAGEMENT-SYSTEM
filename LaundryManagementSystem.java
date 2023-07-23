@@ -16,29 +16,64 @@ public class LaundryManagementSystem extends JFrame implements ActionListener {
     public LaundryManagementSystem() {
         setTitle("Laundry Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 250);
+        setSize(400, 300);
         setLocationRelativeTo(null);
-        setLayout(new FlowLayout());
+        setLayout(new BorderLayout());
+
+        // Header Panel
+        JPanel headerPanel = new JPanel();
+        headerPanel.setBackground(new Color(50, 120, 220));
+        JLabel headerLabel = new JLabel("Laundry Management System");
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        headerLabel.setForeground(Color.WHITE);
+        headerPanel.add(headerLabel);
+
+        // Input Panel
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridBagLayout());
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.insets = new Insets(5, 5, 5, 5);
 
         JLabel nameLabel = new JLabel("Name:");
+        inputPanel.add(nameLabel, constraints);
+
+        constraints.gridx = 1;
         nameField = new JTextField(20);
+        inputPanel.add(nameField, constraints);
 
+        constraints.gridy = 1;
+        constraints.gridx = 0;
         JLabel bagNumberLabel = new JLabel("Bag Number:");
+        inputPanel.add(bagNumberLabel, constraints);
+
+        constraints.gridx = 1;
         bagNumberField = new JTextField(20);
+        inputPanel.add(bagNumberField, constraints);
 
+        constraints.gridy = 2;
+        constraints.gridx = 0;
         JLabel clothesCountLabel = new JLabel("No. of Clothes:");
-        clothesCountField = new JTextField(20);
+        inputPanel.add(clothesCountLabel, constraints);
 
+        constraints.gridx = 1;
+        clothesCountField = new JTextField(20);
+        inputPanel.add(clothesCountField, constraints);
+
+        // Button Panel
+        JPanel buttonPanel = new JPanel();
         submitButton = new JButton("Submit");
         submitButton.addActionListener(this);
+        buttonPanel.add(submitButton);
 
-        add(nameLabel);
-        add(nameField);
-        add(bagNumberLabel);
-        add(bagNumberField);
-        add(clothesCountLabel);
-        add(clothesCountField);
-        add(submitButton);
+        // Add components to the frame
+        add(headerPanel, BorderLayout.NORTH);
+        add(inputPanel, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
 
         setVisible(true);
 
@@ -127,6 +162,11 @@ public class LaundryManagementSystem extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         new LaundryManagementSystem();
     }
 }
